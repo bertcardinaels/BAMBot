@@ -1,0 +1,40 @@
+{
+  "name": "bam-bot",
+  "version": "0.0.1",
+  "description": "discord.js bot for use on the BAM Jonge Discord server",
+  "main": "src/main.ts",
+  "scripts": {
+    "start": "ts-node-dev --respawn --transpile-only --poll ./src/main.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bertcardinaels/bam-bot.git"
+  },
+  "keywords": [
+    "discord.js",
+    "bot"
+  ],
+  "author": "Bert Cardinaels",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bertcardinaels/bam-bot/issues"
+  },
+  "homepage": "https://github.com/bertcardinaels/bam-bot#readme",
+  "devDependencies": {
+    "@types/node": "^16.6.2",
+    "cz-conventional-changelog": "^3.3.0",
+    "ts-node": "^10.2.1",
+    "ts-node-dev": "^1.1.8",
+    "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "@discordjs/rest": "^0.1.0-canary.0",
+    "discord-api-types": "^0.22.0",
+    "discord.js": "^13.2.0-dev.1629374885.d6e6244"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}
