@@ -1,10 +1,11 @@
 {
   "name": "bam-bot",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "discord.js bot for use on the BAM Jonge Discord server",
   "main": "src/main.ts",
   "scripts": {
-    "start": "ts-node-dev --respawn --transpile-only --poll ./src/main.ts"
+    "dev": "ts-node-dev --respawn --transpile-only --poll ./src/main.ts",
+    "start": "ts-node ./src/main.ts"
   },
   "repository": {
     "type": "git",

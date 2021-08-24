@@ -1,3 +1,3 @@
-export { Config } from './Config'
-export { Command } from './Command'
-export { Event } from './Event'
+export * from './Config'
+export * from './Command'
+export * from './Event'
