@@ -1,5 +1,5 @@
 import { Role, User } from 'discord.js';
-import { filterQuotes, isRoleMention, isUserMention } from '../../Common';
+import { filterQuotes, getSearchSentence, isRoleMention, isUserMention, sendNoQuotesReply, sendNotInitializedReply } from '../../Common';
 import { Command } from '../../Interfaces';
 
 export const command: Command = {
@@ -7,19 +7,20 @@ export const command: Command = {
     aliases: ['qstat', 'qstats', 'quotestat'],
     run: async (client, message, args) => {
         if (!client.quotes) {
-            message.reply('Quotes not yet initialized, please try again later');
+            sendNotInitializedReply(message);
             return;
         }
         const guildQuotes = client.quotes[message.guildId];
 
         if (!guildQuotes) {
-            message.reply('No quotes found in this server');
+            sendNoQuotesReply(message);
             return;
         }
 
         const mentionedUsers = message.mentions.users;
         const mentionedRoles = message.mentions.roles;
-        const mentionedWords = args.filter(word => !isUserMention(word) && !isRoleMention(word));
+        const searchTerms = getSearchSentence(message);
+        const mentionedWords = searchTerms ? [searchTerms[0].substring(1, searchTerms[0].length - 1)] : args.filter(word => !isUserMention(word) && !isRoleMention(word));
         const quotes = filterQuotes(guildQuotes, mentionedUsers, mentionedRoles, mentionedWords);
 
         if (quotes.size < 1) {
