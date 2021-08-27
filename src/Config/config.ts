@@ -5,5 +5,5 @@ export const config: Config = {
     token: token,
     clientId: '877925961067270144',
     prefix: '!',
-    maxFetch: 20,
+    maxFetch: 50,
 }

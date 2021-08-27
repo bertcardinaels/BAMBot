@@ -1,15 +1,17 @@
-import { Client, Collection, Guild, GuildChannel, Message, OAuth2Guild, Snowflake, TextChannel } from "discord.js";
+import { Client, Collection, Guild, GuildChannel, Message, Snowflake, TextChannel } from "discord.js";
 import { readdirSync } from "fs";
 import path from "path";
-import { isQuote, isQuoteChannel } from "../Common";
+import { isQuote, isQuoteChannel } from "../Functions";
 import { config } from "../Config/config";
 import { Command } from "../Interfaces";
 import { QuoteChannel } from "../Interfaces/QuoteChannel";
+import { SlashCommand } from "../Interfaces/SlashCommand";
 
-export class ExtendedClient extends Client {    
+export class ExtendedClient extends Client {
     public commands: Collection<string, Command> = new Collection();
     public events: Collection<string, Event> = new Collection();
     public aliases: Collection<string, Command> = new Collection();
+    public slashCommands: Collection<string, SlashCommand> = new Collection();
 
     public quotes: { [guildId: string]: Collection<string, Message> } = {};
     public quotesInitialized: boolean;
@@ -18,16 +20,11 @@ export class ExtendedClient extends Client {
     public async init() {
         // Commands
         const commandPath = path.join(__dirname, "..", "Commands");
-        readdirSync(commandPath).forEach((dir) => {
-            const commands = readdirSync(`${commandPath}/${dir}`).filter((file) => file.endsWith('.ts'));
-
-            commands.forEach(async file => {
-                const { command } = await import(`${commandPath}/${dir}/${file}`);
-                this.commands.set(command.name, command);
-
-                command?.aliases?.length && command.aliases.forEach((alias: any) => {
-                    this.aliases.set(alias, command);
-                });
+        readdirSync(commandPath).forEach(async (file) => {
+            const { command } = await import(`${commandPath}/${file}`);
+            this.commands.set(command.name, command);
+            command?.aliases?.length && command.aliases.forEach((alias: any) => {
+                this.aliases.set(alias, command);
             });
         });
 
@@ -39,12 +36,28 @@ export class ExtendedClient extends Client {
             this.on(event.name, event.run.bind(null, this));
         });
 
+        // Slash Commands
+        const slashCommandPath = path.join(__dirname, "..", "SlashCommands");
+        readdirSync(slashCommandPath).forEach(async (file) => {
+            const { slashCommand } = await import(`${slashCommandPath}/${file}`);
+            this.slashCommands.set(slashCommand.name, slashCommand);
+        });
+        this.initializeSlashCommands();
+
         await this.login(config.token);
 
         // Quotes
-        await this.initializeQuotes();
+        await this.initializeQuotes();        
         this.quotesInitialized = true;
+        console.log('Quotes initialized');
         this.initializeUpdates();
+    }
+
+    initializeSlashCommands() {
+        this.on('interactionCreate', interaction => {
+            if (!interaction.isCommand()) return;
+            this.slashCommands.get(interaction.commandName).run(this, interaction);
+        });
     }
 
     initializeUpdates() {
@@ -96,6 +109,7 @@ export class ExtendedClient extends Client {
             const guilds = guild ? [guild] : await Promise.all((await this.guilds.fetch()).map(async OAuthGuild => await OAuthGuild.fetch()));
             const guildQuotes = await Promise.all(guilds.map(async guild => ({ id: guild.id, quotes: await this.fetchQuotesFromGuild(guild) })));
             guildQuotes.filter(guildQuotes => guildQuotes.quotes).forEach(guildQuotes => this.quotes[guildQuotes.id] = guildQuotes.quotes);
+            await Promise.all(guilds.map(guild => guild.commands.set(this.slashCommands.map(slashCommand => slashCommand))));
             resolve();
         });
     }

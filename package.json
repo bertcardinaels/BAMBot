@@ -1,6 +1,6 @@
 {
   "name": "bam-bot",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "discord.js bot for use on the BAM Jonge Discord server",
   "main": "src/main.ts",
   "scripts": {

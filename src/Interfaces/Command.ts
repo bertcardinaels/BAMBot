@@ -2,7 +2,7 @@ import Client from "../Client/client";
 import { Message } from "discord.js";
 
 interface Run {
-    (client: Client, message: Message, args: string[]): any;
+    (client: Client, message: Message, messageContent: string): any;
 }
 
 export interface Command {
