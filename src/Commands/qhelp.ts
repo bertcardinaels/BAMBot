@@ -1,4 +1,4 @@
-import { sendHelpMessage } from "../Functions";
+import { sendHelpMessage } from "../Common";
 import { Command } from "../Interfaces";
 
 export const command: Command = {

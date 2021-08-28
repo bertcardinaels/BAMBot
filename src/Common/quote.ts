@@ -6,6 +6,19 @@ const roleMentionPattern = /<@&\d{18}>/;
 const quotePattern = /(".+"|'.+'|”.+”).*[~-]/;
 const strictSearchPattern = /"([^"]*)"|'([^']*)'|”([^”]*)”/g;
 
+const notInitialized = {
+    reply: true,
+    response: 'Quotes not yet initialized, please try again later',
+};
+const noQuotesGuild = {
+    reply: true,
+    response: 'No quotes found in this server.',
+}
+const noQuotesQuery = {
+    reply: true,
+    response: 'No quotes found for this query.',
+}
+
 export const isQuote = (message: Message): boolean => quotePattern.test(message.content);
 export const isUserMention = (text: string) => userMentionPattern.test(text);
 export const isRoleMention = (text: string) => roleMentionPattern.test(text);
@@ -50,12 +63,6 @@ export const getInteractionFilters = (interaction: CommandInteraction): { mentio
 export const isQuoteChannel = (channel: GuildChannel): boolean =>
     channel.type === 'GUILD_TEXT' && channel.name === 'quotes';
 
-export const sendNotInitializedReply = (message: Message): Promise<Message> =>
-    message.reply('Quotes not yet initialized, please try again later');
-
-export const sendNoQuotesReply = (message: Message): Promise<Message> =>
-    message.reply('No quotes found in this server')
-
 export const sendHelpMessage = (channel: TextBasedChannels): Promise<Message> =>
     channel.send({
         content: null,
@@ -69,29 +76,14 @@ export const sendHelpMessage = (channel: TextBasedChannels): Promise<Message> =>
     });
 
 export const getRandomQuote = async (client: ExtendedClient, guild: Guild, mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[]): Promise<{ reply: boolean, response: string | MessagePayload | MessageOptions }> => {
-    if (!client.quotesInitialized) {
-        return {
-            reply: true,
-            response: 'Quotes not yet initialized, please try again later',
-        };
-    }
+    if (!client.quotesInitialized) return notInitialized;
     const guildQuotes = client.quotes[guild.id];
-    if (!guildQuotes) {
-        return {
-            reply: true,
-            response: 'No quotes found in this server',
-        };
-    }
+    if (!guildQuotes) return noQuotesGuild;
 
     const quotes = filterQuotes(guildQuotes, mentionedUsers, mentionedRoles, textFilter);
     const quote = quotes.random();
 
-    if (!quote) {
-        return {
-            reply: true,
-            response: 'No quote found found for this query',
-        };
-    }
+    if (!quote) return noQuotesQuery;
 
     const creator = await quote.guild.members.fetch({ user: quote.author });
     return {
@@ -112,28 +104,15 @@ export const getRandomQuote = async (client: ExtendedClient, guild: Guild, menti
 }
 
 export const getQuoteStats = async (client: ExtendedClient, guild: Guild, mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[]): Promise<{ reply: boolean, response: string | MessagePayload | MessageOptions }> => {
-    if (!client.quotesInitialized) {
-        return {
-            reply: true,
-            response: 'Quotes not yet initialized, please try again later',
-        };
-    }
+    if (!client.quotesInitialized) return notInitialized;
+
     const guildQuotes = client.quotes[guild.id];
-    if (!guildQuotes) {
-        return {
-            reply: true,
-            response: 'No quotes found in this server',
-        };
-    }
+    if (!guildQuotes) return noQuotesGuild;
+
 
     const quotes = filterQuotes(guildQuotes, mentionedUsers, mentionedRoles, textFilter);
 
-    if (quotes.size < 1) {
-        return {
-            reply: true,
-            response: 'No quotes found for this query',
-        };
-    }
+    if (quotes.size < 1) return noQuotesQuery;
 
     const mentions: {
         [id: string]: {

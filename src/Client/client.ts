@@ -1,7 +1,7 @@
 import { Client, Collection, Guild, GuildChannel, Message, Snowflake, TextChannel } from "discord.js";
 import { readdirSync } from "fs";
 import path from "path";
-import { isQuote, isQuoteChannel } from "../Functions";
+import { insufficientPermissions, isQuote, isQuoteChannel } from "../Common";
 import { config } from "../Config/config";
 import { Command } from "../Interfaces";
 import { QuoteChannel } from "../Interfaces/QuoteChannel";
@@ -47,16 +47,25 @@ export class ExtendedClient extends Client {
         await this.login(config.token);
 
         // Quotes
-        await this.initializeQuotes();        
+        await this.initializeQuotes();
         this.quotesInitialized = true;
         console.log('Quotes initialized');
         this.initializeUpdates();
     }
 
     initializeSlashCommands() {
-        this.on('interactionCreate', interaction => {
+        this.on('interactionCreate', async interaction => {
             if (!interaction.isCommand()) return;
-            this.slashCommands.get(interaction.commandName).run(this, interaction);
+            const slashCommand = this.slashCommands.get(interaction.commandName);
+            if (!slashCommand) return;
+            if (slashCommand.permissions) {
+                const guildMember = await interaction.guild.members.fetch(interaction.member.user.id);
+                if (!slashCommand.permissions.some(permission => guildMember.permissions.has(permission))) {
+                    interaction.reply(insufficientPermissions);
+                    return;
+                };
+            }
+            slashCommand.run(this, interaction);
         });
     }
 

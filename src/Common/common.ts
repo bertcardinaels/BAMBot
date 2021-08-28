@@ -1,0 +1,1 @@
+export const insufficientPermissions = 'You do not have the permissions to execute this command.';

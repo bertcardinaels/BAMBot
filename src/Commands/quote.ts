@@ -1,4 +1,4 @@
-import { getMessageFilters, getRandomQuote } from "../Functions";
+import { getMessageFilters, getRandomQuote } from "../Common";
 import { Command } from "../Interfaces";
 
 export const command: Command = {

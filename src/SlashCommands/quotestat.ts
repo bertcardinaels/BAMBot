@@ -1,4 +1,4 @@
-import { getInteractionFilters, getQuoteStats } from "../Functions";
+import { getInteractionFilters, getQuoteStats } from "../Common";
 import { SlashCommand } from "../Interfaces/SlashCommand";
 
 export const slashCommand: SlashCommand = {
