@@ -12,12 +12,15 @@ const notInitialized = {
 };
 const noQuotesGuild = {
     reply: true,
-    response: 'No quotes found in this server.',
+    response: 'No quotes found in this server',
 }
 const noQuotesQuery = {
     reply: true,
-    response: 'No quotes found for this query.',
+    response: 'No quotes found for this query',
 }
+
+export const startedReinitialization = 'Started reinitializing quotes';
+export const finishedReinitialization = 'Finished reinitializing quotes';
 
 export const isQuote = (message: Message): boolean => quotePattern.test(message.content);
 export const isUserMention = (text: string) => userMentionPattern.test(text);
@@ -63,17 +66,6 @@ export const getInteractionFilters = (interaction: CommandInteraction): { mentio
 export const isQuoteChannel = (channel: GuildChannel): boolean =>
     channel.type === 'GUILD_TEXT' && channel.name === 'quotes';
 
-export const sendHelpMessage = (channel: TextBasedChannels): Promise<Message> =>
-    channel.send({
-        content: null,
-        embeds: [
-            {
-                title: "QuoteBot information",
-                description: "Gathers all quotes from #quotes channels\nQuote format: `\"text goes here\" ~ @Quotee`, single quotes `'` and `-` accepted too.\n\n**Commands**\n```!quote ```  Fetches a random quote\nAliases: `!q`\nSlash command: `/quote`\n\n```!quotestats ``` Shows stats on all gathered quotes\nAliases: `!qstat`, `!qstats`, `!quotestat`\nSlash command: `/quotestats`\n\n**Filtering**\nBoth commands can be filtered as follows:\n1. `!q laugh joke`: Quotes which include `laugh` or `joke` somewhere in the quote\n2. `!q \"set of words\"` Quotes which include the set of words, single `'` works\n3. `!q @Mention`: Quotes which include the mentioned user or role\n\nCombining text filters (`1` or `2`) with mention filters (`3`) returns quotes which satisfy both kinds of filters.",
-                color: 4211787
-            }
-        ]
-    });
 
 export const getRandomQuote = async (client: ExtendedClient, guild: Guild, mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[]): Promise<{ reply: boolean, response: string | MessagePayload | MessageOptions }> => {
     if (!client.quotesInitialized) return notInitialized;

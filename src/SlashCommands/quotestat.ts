@@ -4,7 +4,7 @@ import { SlashCommand } from "../Interfaces/SlashCommand";
 export const slashCommand: SlashCommand = {
     name: 'quotestat',
     type: 'CHAT_INPUT',
-    description: 'Fetches statistics on quotes',
+    description: 'Gets statistics on quotes',
     options: [
         { type: 'STRING', name: 'words', description: 'Filter to include one of the following words' },
         { type: 'USER', name: 'user', description: 'Filter to include member' },

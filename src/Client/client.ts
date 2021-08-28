@@ -53,7 +53,7 @@ export class ExtendedClient extends Client {
         this.initializeUpdates();
     }
 
-    initializeSlashCommands() {
+    initializeSlashCommands(): void {
         this.on('interactionCreate', async interaction => {
             if (!interaction.isCommand()) return;
             const slashCommand = this.slashCommands.get(interaction.commandName);
@@ -69,13 +69,12 @@ export class ExtendedClient extends Client {
         });
     }
 
-    initializeUpdates() {
+    initializeUpdates(): void {
         this.on('guildCreate', async (guild: Guild) => {
             await this.initializeQuotes(guild);
         });
         this.on('guildDelete', (guild: Guild) => {
-            delete this.quotes[guild.id];
-            this.quoteChannels.filter(quoteChannels => quoteChannels.guildId === guild.id).forEach(channel => this.removeQuoteChannel(channel));
+            this.deleteGuild(guild);
         });
         this.on('channelCreate', (channel: GuildChannel) => {
             if (isQuoteChannel(channel)) {
@@ -103,12 +102,12 @@ export class ExtendedClient extends Client {
         });
     }
 
-    initalizeQuoteListener(channel: TextChannel) {
+    initalizeQuoteListener(channel: TextChannel): void {
         const messageCollector = channel.createMessageCollector({ filter: message => isQuote(message) }).on('collect', (message) => { this.quotes[message.guild.id].set(message.id, message); });
         this.quoteChannels = this.quoteChannels.set(channel.id, { ...channel, messageCollector } as QuoteChannel);
     }
 
-    removeQuoteChannel(channel: TextChannel, stopMessageListener?: boolean) {
+    removeQuoteChannel(channel: TextChannel, stopMessageListener?: boolean): void {
         if (stopMessageListener) this.quoteChannels.find(quoteChannel => quoteChannel.id === channel.id)?.messageCollector?.stop('Channel no longer quote channel');
         this.quoteChannels = this.quoteChannels.filter(quoteChannel => quoteChannel.id !== channel.id);
     }
@@ -121,6 +120,11 @@ export class ExtendedClient extends Client {
             await Promise.all(guilds.map(guild => guild.commands.set(this.slashCommands.map(slashCommand => slashCommand))));
             resolve();
         });
+    }
+
+    deleteGuild(guild: Guild): void {
+        delete this.quotes[guild.id];
+        this.quoteChannels.filter(quoteChannels => quoteChannels.guildId === guild.id).forEach(channel => this.removeQuoteChannel(channel, true));
     }
 
     fetchQuotesFromGuild(guild: Guild): Promise<Collection<string, Message>> {

@@ -22,8 +22,16 @@ Shows stats on all gathered quotes
 Aliases: `!qstat`, `!qstats`, `!quotestat`  
 Slash command: `/quotestats`
 
-### Filtering
-Both commands can be filtered as follows:
+```
+!reinitialize
+```
+Reinitializes the quotes on the server  
+Permissions needed: `Administrator`  
+Aliases: `!reinit`  
+Slash command: `/reinitialize`
+
+## Filtering
+Both quote commands can be filtered as follows:
 1. `!q laugh joke` Quotes which include laugh or joke somewhere in the quote
 2. `!q "set of words"` Quotes which include the set of words, single `'` works
 3. `!q @Mention` Quotes which include the mentioned user or role
