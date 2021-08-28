@@ -26,7 +26,7 @@ export const getMessageFilters = (message: Message, messageContent: string): { m
     const strictSearches = getStrictSearches(messageContent);
     let content = messageContent;
     strictSearches.forEach(sentence => content = content.replace(sentence, '').trim());
-    const words = content.split(/ +/g).filter(word => !isUserMention(word) && !isRoleMention(word));
+    const words = content.split(/ +/g).filter(word => word.length && !isUserMention(word) && !isRoleMention(word));
     const textFilter = words.concat(strictSearches.map(term => term.substring(1, term.length - 1)));
     return { mentionedUsers, mentionedRoles, textFilter };
 }
