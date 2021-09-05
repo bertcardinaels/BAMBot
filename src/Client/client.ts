@@ -56,6 +56,8 @@ export class ExtendedClient extends Client {
     initializeSlashCommands(): void {
         this.on('interactionCreate', async interaction => {
             if (!interaction.isCommand()) return;
+            if (!interaction.inGuild()) return;
+            if (isQuoteChannel(interaction.channel as GuildChannel)) return;
             const slashCommand = this.slashCommands.get(interaction.commandName);
             if (!slashCommand) return;
             if (slashCommand.permissions) {
