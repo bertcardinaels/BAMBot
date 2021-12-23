@@ -1,5 +1,5 @@
-import Client from "../Client/client";
 import { Message, PermissionString } from "discord.js";
+import Client from "../Client/client";
 
 interface Run {
     (client: Client, message: Message, messageContent: string): any;

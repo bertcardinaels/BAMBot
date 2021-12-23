@@ -6,4 +6,5 @@ export const config: Config = {
     clientId: '877925961067270144',
     prefix: '!',
     maxFetch: 50,
+    apiLocation: 'http://localhost:3000',
 }

@@ -1,8 +1,7 @@
-import { Collection, Guild, GuildChannel, Message, MessagePayload, MessageOptions, Role, TextBasedChannels, User, CommandInteraction } from "discord.js";
+import { Collection, CommandInteraction, Guild, GuildChannel, Message, MessageOptions, MessagePayload, Role, User } from "discord.js";
+import { isRoleMention, isUserMention } from ".";
 import ExtendedClient from "../Client/client";
 
-const userMentionPattern = /<@!\d{18}>/;
-const roleMentionPattern = /<@&\d{18}>/;
 const quotePattern = /(".+"|'.+'|”.+”).*[~-]/;
 const strictSearchPattern = /"([^"]*)"|'([^']*)'|”([^”]*)”/g;
 
@@ -23,8 +22,6 @@ export const startedReinitialization = 'Started reinitializing quotes';
 export const finishedReinitialization = 'Finished reinitializing quotes';
 
 export const isQuote = (message: Message): boolean => quotePattern.test(message.content);
-export const isUserMention = (text: string) => userMentionPattern.test(text);
-export const isRoleMention = (text: string) => roleMentionPattern.test(text);
 
 export const filterQuotes = (quotes: Collection<string, Message>, mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[]): Collection<string, Message> => {
     return quotes.filter(quote => {

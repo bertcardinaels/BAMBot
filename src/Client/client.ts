@@ -80,6 +80,7 @@ export class ExtendedClient extends Client {
         });
         this.on('channelCreate', (channel: GuildChannel) => {
             if (isQuoteChannel(channel)) {
+                if (!this.quotes[channel.guild.id]) this.quotes[channel.guild.id] = new Collection();
                 this.initalizeQuoteListener(channel as TextChannel);
             }
         });
