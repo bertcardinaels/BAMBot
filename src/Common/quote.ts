@@ -1,6 +1,7 @@
 import { Collection, CommandInteraction, Guild, GuildChannel, Message, MessageOptions, MessagePayload, Role, User } from "discord.js";
 import { isRoleMention, isUserMention } from ".";
 import ExtendedClient from "../Client/client";
+import { FilterFlag } from "../Interfaces/FilterFlag";
 
 const quotePattern = /(".+"|'.+'|”.+”).*[~-]/;
 const strictSearchPattern = /"([^"]*)"|'([^']*)'|”([^”]*)”/g;
@@ -23,28 +24,53 @@ export const finishedReinitialization = 'Finished reinitializing quotes';
 
 export const isQuote = (message: Message): boolean => quotePattern.test(message.content);
 
-export const filterQuotes = (quotes: Collection<string, Message>, mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[]): Collection<string, Message> => {
+export const messageImageUrl = (message: Message): string => {
+    return message.attachments?.find(attachment => attachment.contentType?.startsWith('image/') || attachment.url?.endsWith('.png'))?.url
+        ?? message.embeds?.find(embed => !!embed.thumbnail?.url)?.thumbnail.url;
+}
+
+export const filterQuotes = (quotes: Collection<string, Message>, mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[], includeImage: boolean): Collection<string, Message> => {
+    const ignoreImage = includeImage === undefined;
     return quotes.filter(quote => {
-        if (!mentionedUsers && !mentionedRoles && !textFilter) return true;
-        return (quote.mentions.users.hasAny(...mentionedUsers.map(user => user.id)) || quote.mentions.roles.hasAny(...mentionedRoles.map(role => role.id)) || (mentionedRoles.size === 0 && mentionedUsers.size === 0))
-            && (textFilter.length === 0 || textFilter.some(word => quote.content.toLowerCase().includes(word.toLowerCase())));
+        if (!mentionedUsers && !mentionedRoles && !textFilter && ignoreImage) return true;
+        return (
+            quote.mentions.users.hasAny(...mentionedUsers.map(user => user.id))
+            || quote.mentions.roles.hasAny(...mentionedRoles.map(role => role.id))
+            || (mentionedRoles.size === 0 && mentionedUsers.size === 0))
+            && (textFilter.length === 0 || textFilter.some(word => quote.content.toLowerCase().includes(word.toLowerCase())))
+            && (ignoreImage || (includeImage === !!messageImageUrl(quote)));
     });
 }
 
 export const getStrictSearches = (text: string): string[] => Array.from(text.matchAll(strictSearchPattern), match => match[0]);
 
-export const getMessageFilters = (message: Message, messageContent: string): { mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[] } => {
+export const getFilterFlags = (text: string): { content: string, flags: { [key in FilterFlag]?: boolean } } => {
+    const flags = {};
+    Object.keys(FilterFlag).forEach(key => {
+        const regex = new RegExp('(\\+|-)' + FilterFlag[key]);
+        const match = text.match(regex);
+        flags[FilterFlag[key]] = match ? match[0].includes('+') : undefined;
+        text = text.replace(regex, '').trim();
+    });
+    return {
+        content: text,
+        flags,
+    }
+};
+
+export const getMessageFilters = (message: Message, messageContent: string): { mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[], includeImage: boolean } => {
     const mentionedUsers = message.mentions.users;
     const mentionedRoles = message.mentions.roles;
     const strictSearches = getStrictSearches(messageContent);
-    let content = messageContent;
+    let { content, flags } = getFilterFlags(messageContent);
     strictSearches.forEach(sentence => content = content.replace(sentence, '').trim());
     const words = content.split(/ +/g).filter(word => word.length && !isUserMention(word) && !isRoleMention(word));
     const textFilter = words.concat(strictSearches.map(term => term.substring(1, term.length - 1)));
-    return { mentionedUsers, mentionedRoles, textFilter };
+    const includeImage = flags[FilterFlag.IMAGE];
+    return { mentionedUsers, mentionedRoles, textFilter, includeImage };
 }
 
-export const getInteractionFilters = (interaction: CommandInteraction): { mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[] } => {
+export const getInteractionFilters = (interaction: CommandInteraction): { mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[], includeImage: boolean } => {
     const mentionedUsers: Collection<string, User> = new Collection();
     const userOption = interaction.options.get('user');
     if (userOption?.user) mentionedUsers.set(userOption.user.id, userOption.user);
@@ -52,24 +78,26 @@ export const getInteractionFilters = (interaction: CommandInteraction): { mentio
     const roleOption = interaction.options.get('role');
     if (roleOption?.role) mentionedRoles.set(roleOption.role.id, roleOption.role as Role);
 
+    const includeImage = interaction.options.get('image')?.value as boolean;
+
     const strictSearches = interaction.options.get('sentence')?.value as string;
     const searchWords = interaction.options.get('words')?.value as string;
     const textFilter: string[] = [];
     if (strictSearches) textFilter.push(strictSearches);
     if (searchWords) textFilter.push(...searchWords.trim().split(/ +/g));
-    return { mentionedUsers, mentionedRoles, textFilter };
+    return { mentionedUsers, mentionedRoles, textFilter, includeImage };
 }
 
 export const isQuoteChannel = (channel: GuildChannel): boolean =>
     channel.type === 'GUILD_TEXT' && channel.name === 'quotes';
 
 
-export const getRandomQuote = async (client: ExtendedClient, guild: Guild, mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[]): Promise<{ reply: boolean, response: string | MessagePayload | MessageOptions }> => {
+export const getRandomQuote = async (client: ExtendedClient, guild: Guild, mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[], includeImage?: boolean): Promise<{ reply: boolean, response: string | MessagePayload | MessageOptions }> => {
     if (!client.quotesInitialized) return notInitialized;
     const guildQuotes = client.quotes[guild.id];
     if (!guildQuotes) return noQuotesGuild;
 
-    const quotes = filterQuotes(guildQuotes, mentionedUsers, mentionedRoles, textFilter);
+    const quotes = filterQuotes(guildQuotes, mentionedUsers, mentionedRoles, textFilter, includeImage);
     const quote = quotes.random();
 
     if (!quote) return noQuotesQuery;
@@ -82,6 +110,7 @@ export const getRandomQuote = async (client: ExtendedClient, guild: Guild, menti
             embeds: [
                 {
                     description: `${quote.content} \n\n[Link to message](${quote.url})`,
+                    image: { url: messageImageUrl(quote) },
                     color: 4211787,
                     footer: {
                         text: `Written by ${creator?.displayName ?? quote.author.username}  •  ${quote.createdAt.getDate()}/${quote.createdAt.getMonth() + 1}/${quote.createdAt.getFullYear()}`
@@ -92,14 +121,14 @@ export const getRandomQuote = async (client: ExtendedClient, guild: Guild, menti
     };
 }
 
-export const getQuoteStats = async (client: ExtendedClient, guild: Guild, mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[]): Promise<{ reply: boolean, response: string | MessagePayload | MessageOptions }> => {
+export const getQuoteStats = async (client: ExtendedClient, guild: Guild, mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[], includeImage: boolean): Promise<{ reply: boolean, response: string | MessagePayload | MessageOptions }> => {
     if (!client.quotesInitialized) return notInitialized;
 
     const guildQuotes = client.quotes[guild.id];
     if (!guildQuotes) return noQuotesGuild;
 
 
-    const quotes = filterQuotes(guildQuotes, mentionedUsers, mentionedRoles, textFilter);
+    const quotes = filterQuotes(guildQuotes, mentionedUsers, mentionedRoles, textFilter, includeImage);
 
     if (quotes.size < 1) return noQuotesQuery;
 

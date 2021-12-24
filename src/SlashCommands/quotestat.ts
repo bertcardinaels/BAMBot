@@ -10,9 +10,10 @@ export const slashCommand: SlashCommand = {
         { type: 'USER', name: 'user', description: 'Filter to include member' },
         { type: 'ROLE', name: 'role', description: 'Filter to include role' },
         { type: 'STRING', name: 'strict', description: 'Filter to include the following set of words' },
+        { type: 'BOOLEAN', name: 'image', description: 'Filter to include image' },
     ],
     run: async (client, interaction) => {
-        const { mentionedUsers, mentionedRoles, textFilter } = getInteractionFilters(interaction);
-        interaction.reply((await getQuoteStats(client, interaction.guild, mentionedUsers, mentionedRoles, textFilter)).response);
+        const { mentionedUsers, mentionedRoles, textFilter, includeImage } = getInteractionFilters(interaction);
+        interaction.reply((await getQuoteStats(client, interaction.guild, mentionedUsers, mentionedRoles, textFilter, includeImage)).response);
     }
 }
