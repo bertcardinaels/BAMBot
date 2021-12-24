@@ -31,7 +31,7 @@ export const slashCommand: SlashCommand = {
             reactionCollector.on('collect', async (reaction, user) => {
                 const fixToDelete = toFixList.find(toFix => toFix.emoji === reaction.emoji.name);
 
-                if (user.id !== author.id || !fixToDelete) {
+                if (user.id !== author.id || user.id === client.user.id || !fixToDelete) {
                     return await reaction.remove(); //TODO check why different user makes bot reaction go away
                 };
 
@@ -47,8 +47,14 @@ export const slashCommand: SlashCommand = {
             });
 
             reactionCollector.on('end', async () => {
-                await replyMessage.edit(listMessage(author, allFixes, toFixList, toFixAmount, true));
-                await replyMessage.reactions.removeAll();
+                try {
+                    await replyMessage.edit(listMessage(author, allFixes, toFixList, toFixAmount, true));
+                    await replyMessage.reactions.removeAll();
+                }
+                catch (error) {
+                    console.error('Error occured during /fixlist reactionCollectorEnd');
+                    console.log(error);
+                }
             });
         }
         catch (error) {
@@ -57,3 +63,4 @@ export const slashCommand: SlashCommand = {
         }
     }
 }
+
