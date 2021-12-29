@@ -24,8 +24,8 @@ export const slashCommand: SlashCommand = {
             if (!message) return await interaction.reply('Invalid message linked');
 
             const payload: ToFix = { message, flaggedBy: interaction.user, author: message.author };
-            const isNewFix = await got.post(`${config.apiLocation}/fix`, { json: payload }).json();
-            interaction.reply(`${isNewFix ? 'Added' : 'Updated'} quote ${isNewFix ? 'to' : 'in'} list`);
+            await got.post(`${config.apiLocation}/fix`, { json: payload }).json();            
+            interaction.reply(`Added quote to list`);
         }
         catch (error) {
             console.error('Error occured during /fixquote');

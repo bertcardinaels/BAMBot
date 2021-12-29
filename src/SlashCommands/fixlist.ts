@@ -31,7 +31,8 @@ export const slashCommand: SlashCommand = {
             reactionCollector.on('collect', async (reaction, user) => {
                 const fixToDelete = toFixList.find(toFix => toFix.emoji === reaction.emoji.name);
 
-                if (user.id !== author.id || user.id === client.user.id || !fixToDelete) {
+                if (user.id === client.user.id) return;
+                if (user.id !== author.id || !fixToDelete) {
                     return await reaction.remove(); //TODO check why different user makes bot reaction go away
                 };
 
