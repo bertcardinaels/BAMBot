@@ -3,5 +3,4 @@ export interface Config {
     clientId: string,
     prefix: string,
     maxFetch: number,
-    apiLocation: string,
 }
