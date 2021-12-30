@@ -1,7 +1,5 @@
 import { Message } from "discord.js";
-import got from "got/dist/source";
 import { listMessage, mapNumberToEmoji, ToFix } from "../Common";
-import { config } from "../Config/config";
 import { SlashCommand } from "../Interfaces/SlashCommand";
 
 export const slashCommand: SlashCommand = {
@@ -16,7 +14,7 @@ export const slashCommand: SlashCommand = {
             const userOption = interaction.options.get('user');
             const author = userOption?.user ?? interaction.user;
 
-            const allFixes: ToFix[] = await got.get(`${config.apiLocation}/fix/${interaction.guildId}/${author.id}`).json();
+            const allFixes: ToFix[] = await client.apiService.getFixes(interaction.guildId, author.id);
 
             let toFixList: ToFix[] = allFixes.slice(0, 9).map((toFix, index) => ({ ...toFix, emoji: mapNumberToEmoji(index) }));
             const toFixAmount = toFixList.length;
@@ -36,7 +34,7 @@ export const slashCommand: SlashCommand = {
                     return await reaction.remove(); //TODO check why different user makes bot reaction go away
                 };
 
-                await got.delete(`${config.apiLocation}/fix/${fixToDelete.message.id}`);
+                await client.apiService.deleteFix(fixToDelete.message.id);
                 toFixList = toFixList.filter(embed => embed.emoji !== reaction.emoji.name);
                 await replyMessage.edit(listMessage(author, allFixes, toFixList, toFixAmount));
                 if (toFixList.length) {

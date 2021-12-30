@@ -1,6 +1,4 @@
-import got from "got/dist/source";
 import { isQuoteChannel, parseMessageUrl, ToFix } from "../Common";
-import { config } from "../Config/config";
 import { SlashCommand } from "../Interfaces/SlashCommand";
 
 export const slashCommand: SlashCommand = {
@@ -24,7 +22,7 @@ export const slashCommand: SlashCommand = {
             if (!message) return await interaction.reply('Invalid message linked');
 
             const payload: ToFix = { message, flaggedBy: interaction.user, author: message.author };
-            await got.post(`${config.apiLocation}/fix`, { json: payload }).json();            
+            await client.apiService.createFix(payload);            
             interaction.reply(`Added quote to list`);
         }
         catch (error) {

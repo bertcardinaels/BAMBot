@@ -1,4 +1,4 @@
-import { Client, Collection, Guild, GuildChannel, Message, Snowflake, TextChannel } from "discord.js";
+import { Client, ClientOptions, Collection, Guild, GuildChannel, Message, Snowflake, TextChannel } from "discord.js";
 import { readdirSync } from "fs";
 import path from "path";
 import { insufficientPermissions, isQuote, isQuoteChannel } from "../Common";
@@ -6,8 +6,11 @@ import { config } from "../Config/config";
 import { Command } from "../Interfaces";
 import { QuoteChannel } from "../Interfaces/QuoteChannel";
 import { SlashCommand } from "../Interfaces/SlashCommand";
+import { ApiService } from "./api";
 
 export class ExtendedClient extends Client {
+    constructor(options: ClientOptions, public apiService: ApiService) { super(options); }
+
     public commands: Collection<string, Command> = new Collection();
     public events: Collection<string, Event> = new Collection();
     public aliases: Collection<string, Command> = new Collection();
