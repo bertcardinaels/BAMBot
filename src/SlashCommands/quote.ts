@@ -14,6 +14,6 @@ export const slashCommand: SlashCommand = {
     ],
     run: async (client, interaction) => {
         const { mentionedUsers, mentionedRoles, textFilter, includeImage } = getInteractionFilters(interaction);
-        interaction.reply((await getRandomQuote(client, interaction.guild, mentionedUsers, mentionedRoles, textFilter, includeImage)).response);
+        interaction.reply((await getRandomQuote(client, interaction.user, interaction.guild, mentionedUsers, mentionedRoles, textFilter, includeImage)).response);
     }
 }

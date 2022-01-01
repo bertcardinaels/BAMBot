@@ -1,4 +1,4 @@
-import { Client, ClientOptions, Collection, Guild, GuildChannel, Message, Snowflake, TextChannel } from "discord.js";
+import { Client, ClientOptions, Collection, Guild, GuildChannel, Message, TextChannel } from "discord.js";
 import { readdirSync } from "fs";
 import path from "path";
 import { insufficientPermissions, isQuote, isQuoteChannel } from "../Common";
@@ -7,9 +7,14 @@ import { Command } from "../Interfaces";
 import { QuoteChannel } from "../Interfaces/QuoteChannel";
 import { SlashCommand } from "../Interfaces/SlashCommand";
 import { ApiService } from "./api";
+import { LoggingService } from "./logger";
 
 export class ExtendedClient extends Client {
-    constructor(options: ClientOptions, public apiService: ApiService) { super(options); }
+    constructor(
+        options: ClientOptions,
+        public apiService: ApiService,
+        public logger: LoggingService,
+    ) { super(options); }
 
     public commands: Collection<string, Command> = new Collection();
     public events: Collection<string, Event> = new Collection();
@@ -52,7 +57,7 @@ export class ExtendedClient extends Client {
         // Quotes
         await this.initializeQuotes();
         this.quotesInitialized = true;
-        console.log('Quotes initialized');
+        this.logger.quotesInitialized(Object.values(this.quotes).reduce(((prev, curr) => prev += curr.size), 0));
         this.initializeUpdates();
     }
 
@@ -76,32 +81,37 @@ export class ExtendedClient extends Client {
 
     initializeUpdates(): void {
         this.on('guildCreate', async (guild: Guild) => {
+            this.logger.joinedGuild(guild);
             await this.initializeQuotes(guild);
         });
         this.on('guildDelete', (guild: Guild) => {
+            this.logger.leftGuild(guild);
             this.deleteGuild(guild);
         });
         this.on('channelCreate', (channel: GuildChannel) => {
             if (isQuoteChannel(channel)) {
+                this.logger.newChannel(channel);
                 if (!this.quotes[channel.guild.id]) this.quotes[channel.guild.id] = new Collection();
                 this.initalizeQuoteListener(channel as TextChannel);
             }
         });
         this.on('channelUpdate', async (oldChannel: GuildChannel, newChannel: GuildChannel) => {
             if (isQuoteChannel(oldChannel) && !isQuoteChannel(newChannel)) {
+                this.logger.leftChannel(newChannel);
                 this.removeQuoteChannel(oldChannel as TextChannel, true);
                 this.quotes[newChannel.guildId] = this.quotes[newChannel.guildId].filter(message => message.channelId != newChannel.id);
             }
             if (!isQuoteChannel(oldChannel) && isQuoteChannel(newChannel)) {
+                this.logger.newChannel(newChannel);
                 this.initalizeQuoteListener(oldChannel as TextChannel)
                 const quotes = await this.fetchQuotesFromChannel(newChannel as TextChannel);
                 if (this.quotes[newChannel.guildId]) this.quotes[newChannel.guildId] = this.quotes[newChannel.guildId].concat(quotes);
                 else this.quotes[newChannel.guildId] = quotes;
-
             }
         });
         this.on('channelDelete', (channel: GuildChannel) => {
             if (isQuoteChannel(channel)) {
+                this.logger.leftChannel(channel);
                 this.quoteChannels.find(channel => channel.id === channel.id)?.messageCollector?.stop('Deleted channel channel');
                 this.quotes[channel.guildId] = this.quotes[channel.guildId].filter(message => message.channelId != channel.id);
             }
@@ -109,7 +119,10 @@ export class ExtendedClient extends Client {
     }
 
     initalizeQuoteListener(channel: TextChannel): void {
-        const messageCollector = channel.createMessageCollector({ filter: message => isQuote(message) }).on('collect', (message) => { this.quotes[message.guild.id].set(message.id, message); });
+        const messageCollector = channel.createMessageCollector({ filter: message => isQuote(message) }).on('collect', (message) => {
+            this.logger.newQuote(channel.guild, message);
+            this.quotes[message.guild.id].set(message.id, message);
+        });
         this.quoteChannels = this.quoteChannels.set(channel.id, { ...channel, messageCollector } as QuoteChannel);
     }
 
@@ -141,6 +154,7 @@ export class ExtendedClient extends Client {
                     const result = await Promise.all(quoteChannels.map(channel => this.fetchQuotesFromChannel(channel)));
                     const quoteCollection = new Collection<string, Message>().concat(...result);
                     quoteChannels.forEach(channel => this.initalizeQuoteListener(channel));
+                    this.logger.quotesInitialized(quoteCollection.size, guild);
                     resolve(quoteCollection);
                 } else resolve(undefined);
             });
@@ -159,7 +173,7 @@ export class ExtendedClient extends Client {
                 if (counter >= config.maxFetch) repeatFetch = false;
                 if (repeatFetch) {
                     previousBefore = fullMessageCollection.last()?.id;
-                    const nextMessages = await this.fetchMessages(fetchedChannel, previousBefore);
+                    const nextMessages = await fetchedChannel.messages.fetch({ limit: 100, before: previousBefore });
                     fullMessageCollection = fullMessageCollection.concat(nextMessages);
                     quoteCollection = quoteCollection.concat(nextMessages.filter(message => isQuote(message)));
                     if (nextMessages.size === 0) repeatFetch = false;
@@ -168,12 +182,6 @@ export class ExtendedClient extends Client {
                 }
             }
             resolve(quoteCollection);
-        });
-    }
-
-    fetchMessages(channel: TextChannel, before?: Snowflake): Promise<Collection<string, Message>> {
-        return new Promise<Collection<string, Message>>(resolve => {
-            channel.messages.fetch({ limit: 100, before }).then(messages => resolve(messages));
         });
     }
 }

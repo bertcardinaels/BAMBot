@@ -1,4 +1,5 @@
 import { finishedReinitialization, startedReinitialization } from "../Common";
+import { States } from "../Interfaces/logs";
 import { SlashCommand } from "../Interfaces/SlashCommand";
 
 export const slashCommand: SlashCommand = {
@@ -7,10 +8,12 @@ export const slashCommand: SlashCommand = {
     description: 'Reinitializes the quotes for the server',
     permissions: ['ADMINISTRATOR'],
     run: async (client, interaction) => {
+        client.logger.reinitialize(interaction.guild, interaction.user, States.REQUEST);
         client.deleteGuild(interaction.guild);
         await interaction.reply(startedReinitialization);
         const reply = interaction.channel.lastMessage.content === startedReinitialization && interaction.channel.lastMessage;
         await client.initializeQuotes(interaction.guild);
+        client.logger.reinitialize(interaction.guild, interaction.user, States.SUCCESS);
         if (reply) reply.edit(finishedReinitialization);
         else interaction.channel.send(finishedReinitialization);
     }

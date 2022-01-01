@@ -2,27 +2,39 @@ import { Collection, CommandInteraction, Guild, GuildChannel, Message, MessageOp
 import { isRoleMention, isUserMention } from ".";
 import ExtendedClient from "../Client/client";
 import { FilterFlag } from "../Interfaces/FilterFlag";
+import { Tasks } from "../Interfaces/logs";
 
 const quotePattern = /(".+"|'.+'|”.+”).*[~-]/;
 const strictSearchPattern = /"([^"]*)"|'([^']*)'|”([^”]*)”/g;
 
-const notInitialized = {
-    reply: true,
-    response: 'Quotes not yet initialized, please try again later',
+const notInitialized = (task: Tasks.QUOTE | Tasks.QUOTESTATS, client: ExtendedClient, author: User, guild: Guild) => {
+    client.logger.quoteError(task, author, guild, 'NOT YET INITIALIZED');
+    return {
+        reply: true,
+        response: 'Quotes not yet initialized, please try again later',
+    }
 };
-const noQuotesGuild = {
-    reply: true,
-    response: 'No quotes found in this server',
-}
-const noQuotesQuery = {
-    reply: true,
-    response: 'No quotes found for this query',
-}
+const noQuotesGuild = (task: Tasks.QUOTE | Tasks.QUOTESTATS, client: ExtendedClient, author: User, guild: Guild) => {
+    client.logger.quoteError(task, author, guild, 'NO QUOTES FOR GUILD');
+    return {
+        reply: true,
+        response: 'No quotes found in this server',
+    }
+};
+const noQuotesQuery = (task: Tasks.QUOTE | Tasks.QUOTESTATS, client: ExtendedClient, author: User, guild: Guild) => {
+    client.logger.quoteError(task, author, guild, 'NO QUOTES FOR QUERY');
+    return {
+        reply: true,
+        response: 'No quotes found for this query',
+    }
+};
 
 export const startedReinitialization = 'Started reinitializing quotes';
 export const finishedReinitialization = 'Finished reinitializing quotes';
 
 export const isQuote = (message: Message): boolean => quotePattern.test(message.content);
+
+export const cleanQuote = (message: Message): string => message.cleanContent.replace(/(\r\n|\n|\r)/gm, '');
 
 export const messageImageUrl = (message: Message): string => {
     return message.attachments?.find(attachment => attachment.contentType?.startsWith('image/') || attachment.url?.endsWith('.png'))?.url
@@ -92,15 +104,17 @@ export const isQuoteChannel = (channel: GuildChannel): boolean =>
     channel.type === 'GUILD_TEXT' && channel.name === 'quotes';
 
 
-export const getRandomQuote = async (client: ExtendedClient, guild: Guild, mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[], includeImage?: boolean): Promise<{ reply: boolean, response: string | MessagePayload | MessageOptions }> => {
-    if (!client.quotesInitialized) return notInitialized;
+export const getRandomQuote = async (client: ExtendedClient, author: User, guild: Guild, mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[], includeImage?: boolean): Promise<{ reply: boolean, response: string | MessagePayload | MessageOptions }> => {
+    client.logger.quoteRequest(Tasks.QUOTE, author, guild, mentionedUsers, mentionedRoles, textFilter, includeImage);
+    if (!client.quotesInitialized) return notInitialized(Tasks.QUOTE, client, author, guild);
     const guildQuotes = client.quotes[guild.id];
-    if (!guildQuotes) return noQuotesGuild;
+    if (!guildQuotes) return noQuotesGuild(Tasks.QUOTE, client, author, guild);
 
     const quotes = filterQuotes(guildQuotes, mentionedUsers, mentionedRoles, textFilter, includeImage);
     const quote = quotes.random();
 
-    if (!quote) return noQuotesQuery;
+    if (!quote) return noQuotesQuery(Tasks.QUOTE, client, author, guild);
+    else client.logger.quoteSuccess(author, guild, quote);
 
     const creator = await quote.guild.members.fetch({ user: quote.author });
     return {
@@ -121,16 +135,16 @@ export const getRandomQuote = async (client: ExtendedClient, guild: Guild, menti
     };
 }
 
-export const getQuoteStats = async (client: ExtendedClient, guild: Guild, mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[], includeImage: boolean): Promise<{ reply: boolean, response: string | MessagePayload | MessageOptions }> => {
-    if (!client.quotesInitialized) return notInitialized;
+export const getQuoteStats = async (client: ExtendedClient, author: User, guild: Guild, mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[], includeImage?: boolean): Promise<{ reply: boolean, response: string | MessagePayload | MessageOptions }> => {
+    client.logger.quoteRequest(Tasks.QUOTESTATS, author, guild, mentionedUsers, mentionedRoles, textFilter, includeImage);
+    if (!client.quotesInitialized) return notInitialized(Tasks.QUOTESTATS, client, author, guild);
 
     const guildQuotes = client.quotes[guild.id];
-    if (!guildQuotes) return noQuotesGuild;
-
+    if (!guildQuotes) return noQuotesGuild(Tasks.QUOTESTATS, client, author, guild);
 
     const quotes = filterQuotes(guildQuotes, mentionedUsers, mentionedRoles, textFilter, includeImage);
 
-    if (quotes.size < 1) return noQuotesQuery;
+    if (quotes.size < 1) return noQuotesQuery(Tasks.QUOTESTATS, client, author, guild);
 
     const mentions: {
         [id: string]: {
@@ -216,6 +230,7 @@ export const getQuoteStats = async (client: ExtendedClient, guild: Guild, mentio
             value: wordsCount.map(word => `\`${word.word}\` (${word.count})`).join('\n'),
         });
     }
+    client.logger.quoteStatsSuccess(author, guild, quotes);
     return {
         reply: false,
         response: {

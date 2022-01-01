@@ -12,16 +12,19 @@ export const slashCommand: SlashCommand = {
     run: async (client, interaction) => {
         try {
             const userOption = interaction.options.get('user');
-            const author = userOption?.user ?? interaction.user;
+            const target = userOption?.user ?? interaction.user;
 
-            const allFixes: ToFix[] = await client.apiService.getFixes(interaction.guildId, author.id);
+            client.logger.fixlistRequest(interaction.guild, interaction.user, target);
+            const allFixes: ToFix[] = await client.apiService.getFixes(interaction.guildId, target.id);
 
             let toFixList: ToFix[] = allFixes.slice(0, 9).map((toFix, index) => ({ ...toFix, emoji: mapNumberToEmoji(index) }));
             const toFixAmount = toFixList.length;
 
+            client.logger.fixlistSuccess(interaction.guild, interaction.user, target, toFixAmount);
+
             if (!allFixes.length) return await interaction.reply(`No quotes to be fixed by you`);
 
-            const replyMessage = await interaction.reply({ fetchReply: true, ...listMessage(author, allFixes, toFixList, toFixAmount) }) as Message;
+            const replyMessage = await interaction.reply({ fetchReply: true, ...listMessage(target, allFixes, toFixList, toFixAmount) }) as Message;
 
             const botReactions = await Promise.all(toFixList.map((_, index) => replyMessage.react(mapNumberToEmoji(index))));
             const reactionCollector = replyMessage.createReactionCollector({ time: 1000 * 60 * 60 });
@@ -30,13 +33,14 @@ export const slashCommand: SlashCommand = {
                 const fixToDelete = toFixList.find(toFix => toFix.emoji === reaction.emoji.name);
 
                 if (user.id === client.user.id) return;
-                if (user.id !== author.id || !fixToDelete) {
-                    return await reaction.remove(); //TODO check why different user makes bot reaction go away
+                if (user.id !== target.id || !fixToDelete) {
+                    return await reaction.remove();
                 };
 
                 await client.apiService.deleteFix(fixToDelete.message.id);
+                client.logger.fixQuoteSuccess(interaction.guild, interaction.user, fixToDelete);
                 toFixList = toFixList.filter(embed => embed.emoji !== reaction.emoji.name);
-                await replyMessage.edit(listMessage(author, allFixes, toFixList, toFixAmount));
+                await replyMessage.edit(listMessage(target, allFixes, toFixList, toFixAmount));
                 if (toFixList.length) {
                     await reaction.remove();
                     await botReactions.find(react => react.emoji.name === reaction.emoji.name)?.remove();
@@ -47,7 +51,7 @@ export const slashCommand: SlashCommand = {
 
             reactionCollector.on('end', async () => {
                 try {
-                    await replyMessage.edit(listMessage(author, allFixes, toFixList, toFixAmount, true));
+                    await replyMessage.edit(listMessage(target, allFixes, toFixList, toFixAmount, true));
                     await replyMessage.reactions.removeAll();
                 }
                 catch (error) {

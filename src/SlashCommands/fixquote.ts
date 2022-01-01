@@ -22,7 +22,8 @@ export const slashCommand: SlashCommand = {
             if (!message) return await interaction.reply('Invalid message linked');
 
             const payload: ToFix = { message, flaggedBy: interaction.user, author: message.author };
-            await client.apiService.createFix(payload);            
+            await client.apiService.createFix(payload);
+            client.logger.newToFix(interaction.guild, interaction.user, message.author, message);
             interaction.reply(`Added quote to list`);
         }
         catch (error) {
