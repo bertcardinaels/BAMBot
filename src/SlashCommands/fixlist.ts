@@ -17,7 +17,7 @@ export const slashCommand: SlashCommand = {
             client.logger.fixlistRequest(interaction.guild, interaction.user, target);
             const allFixes: ToFix[] = await client.apiService.getFixes(interaction.guildId, target.id);
 
-            let toFixList: ToFix[] = allFixes.slice(0, 9).map((toFix, index) => ({ ...toFix, emoji: mapNumberToEmoji(index) }));
+            let toFixList: ToFix[] = allFixes.slice(0, 8).map((toFix, index) => ({ ...toFix, emoji: mapNumberToEmoji(index) }));
             const toFixAmount = toFixList.length;
 
             client.logger.fixlistSuccess(interaction.guild, interaction.user, target, toFixAmount);
@@ -26,16 +26,18 @@ export const slashCommand: SlashCommand = {
 
             const replyMessage = await interaction.reply({ fetchReply: true, ...listMessage(target, allFixes, toFixList, toFixAmount) }) as Message;
 
-            const botReactions = await Promise.all(toFixList.map((_, index) => replyMessage.react(mapNumberToEmoji(index))));
+            const botReactions = await Promise.all([...toFixList.map((_, index) => replyMessage.react(mapNumberToEmoji(index))), replyMessage.react('❌')]);
             const reactionCollector = replyMessage.createReactionCollector({ time: 1000 * 60 * 60 });
 
             reactionCollector.on('collect', async (reaction, user) => {
-                const fixToDelete = toFixList.find(toFix => toFix.emoji === reaction.emoji.name);
-
                 if (user.id === client.user.id) return;
-                if (user.id !== target.id || !fixToDelete) {
-                    return await reaction.remove();
-                };
+
+                const fixToDelete = toFixList.find(toFix => toFix.emoji === reaction.emoji.name);
+                const guildMember = reaction.message.guild.members.fetch(user.id);
+                const authorized = user.id === target.id ?? (await guildMember).permissions.has('ADMINISTRATOR');
+
+                if (authorized && reaction.emoji.name === '❌') return reactionCollector.stop('Closed by user');
+                if (!authorized || !fixToDelete) return await reaction.users.remove(user.id);
 
                 await client.apiService.deleteFix(fixToDelete.message.id);
                 client.logger.fixQuoteSuccess(interaction.guild, interaction.user, fixToDelete);

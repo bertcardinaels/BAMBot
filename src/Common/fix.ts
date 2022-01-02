@@ -10,20 +10,20 @@ export interface ToFix {
 
 export const fixes = [];
 
-export const listMessage = (author: User, allFixes: any[], toFixList: any[], toFix: number, timedOut?: boolean): MessageOptions => {
+export const listMessage = (author: User, allFixes: any[], toFixList: any[], toFix: number, ended?: boolean): MessageOptions => {
     return {
-        content: toFixList.length ? '>>> **HOW TO**\nClick the "Link to message"\nFix the quote\nCome back to this message\nReact with the emoji to mark it as fixed' : null,
-        embeds: [listEmbed(author, allFixes, toFixList, toFix, timedOut), ...toFixList.map(toFix => fixToEmbed(toFix))],
+        content: toFixList.length ? '>>> **HOW TO**\nClick the "Link to message"\nFix the quote\nCome back to this message\nReact with the emoji to mark it as fixed\nReact with ❌ to stop' : null,
+        embeds: [listEmbed(author, allFixes, toFixList, toFix, ended), ...(ended ? [] : toFixList.map(toFix => fixToEmbed(toFix)))],
     }
 }
 
-const listEmbed = (author: User, allFixes: any[], toFixList: any[], toFix: number, timedOut?: boolean): MessageEmbedOptions => {
-    let description: string[] = [];    
+const listEmbed = (author: User, allFixes: any[], toFixList: any[], toFix: number, ended?: boolean): MessageEmbedOptions => {
+    let description: string[] = [];
     if (toFixList.length) {
         description.push(`Listing${allFixes.length > 9 ? ` first ${toFix} out of ${allFixes.length} ` : ` ${allFixes.length} `}quotes to be fixed by <@!${author.id}>.`);
-        if (timedOut) description.push(`Timed out, no longer listening to reactions.`);
+        if (ended) description.push(`**Stopped, no longer listening to reactions.**`);
         else description.push(`React with the emoji to mark it as fixed.`);
-        if (amountFixed(toFixList, toFix)) description.push(`${timedOut ? 'Fixed' : 'Already fixed'} ${amountFixed(toFixList, toFix)} quotes in this session.`);
+        if (amountFixed(toFixList, toFix)) description.push(`${ended ? 'Fixed' : 'Already fixed'} ${amountFixed(toFixList, toFix)} quotes in this session.`);
     } else {
         description.push('All quotes fixed');
     }
