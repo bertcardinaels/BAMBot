@@ -18,8 +18,8 @@ export class LoggingService {
     quoteError(task: Tasks.QUOTE | Tasks.QUOTESTATS, author: User, guild: Guild, error: string): void {
         this.log([guild.name, task, States.ERROR, author.tag, error,], true);
     }
-    quoteSuccess(author: User, guild: Guild, message: Message): void {
-        this.log([guild.name, Tasks.QUOTE, States.SUCCESS, author.tag, cleanQuote(message)]);
+    quoteState(state: States, author: User, guild: Guild, message: Message): void {
+        this.log([guild.name, Tasks.QUOTE, state, author.tag, cleanQuote(message)]);
     }
     quoteStatsSuccess(author: User, guild: Guild, quotes: Collection<string, Message>): void {
         this.log([guild.name, Tasks.QUOTESTATS, States.SUCCESS, author.tag, quotes.size.toString()]);

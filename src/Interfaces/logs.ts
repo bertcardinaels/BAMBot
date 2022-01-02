@@ -16,8 +16,11 @@ export enum Tasks {
 export enum States {
     REQUEST = 'REQUEST',
     SUCCESS = 'SUCCESS',
+    DISPLAY = 'DISPLAY',
+    UPDATE = 'UPDATE ',
     ERROR = ' ERROR ',
     ADD = '  ADD  ',
+    DELETE = 'DELETE ',
 }
 
 export enum Scopes {

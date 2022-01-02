@@ -2,7 +2,7 @@ import { Collection, CommandInteraction, Guild, GuildChannel, Message, MessageOp
 import { isRoleMention, isUserMention } from ".";
 import ExtendedClient from "../Client/client";
 import { FilterFlag } from "../Interfaces/FilterFlag";
-import { Tasks } from "../Interfaces/logs";
+import { States, Tasks } from "../Interfaces/logs";
 
 const quotePattern = /(".+"|'.+'|”.+”).*[~-]/;
 const strictSearchPattern = /"([^"]*)"|'([^']*)'|”([^”]*)”/g;
@@ -114,7 +114,7 @@ export const getRandomQuote = async (client: ExtendedClient, author: User, guild
     const quote = quotes.random();
 
     if (!quote) return noQuotesQuery(Tasks.QUOTE, client, author, guild);
-    else client.logger.quoteSuccess(author, guild, quote);
+    else client.logger.quoteState(States.DISPLAY, author, guild, quote);
 
     const creator = await quote.guild.members.fetch({ user: quote.author });
     return {

@@ -6,7 +6,7 @@
   "scripts": {
     "dev:remote": "cross-env NODE_ENV=remote ts-node-dev --respawn --transpile-only --poll ./src/main.ts",
     "dev:local": "cross-env NODE_ENV=local ts-node-dev --respawn --transpile-only --poll ./src/main.ts",
-    "start": "NODE_ENV=local ts-node ./src/main.ts"
+    "start": "cross-env NODE_ENV=local ts-node ./src/main.ts"
   },
   "repository": {
     "type": "git",
