@@ -1,7 +1,7 @@
-import { getInteractionFilters, getRandomQuote } from "../Common";
-import { SlashCommand } from "../Interfaces/SlashCommand";
+import { getInteractionFilters, getRandomQuote } from "../common";
+import { SlashCommand } from "../interfaces";
 
-export const slashCommand: SlashCommand = {
+export const quote: SlashCommand = {
     name: 'quote',
     type: 'CHAT_INPUT',
     description: 'Gets a random quote',

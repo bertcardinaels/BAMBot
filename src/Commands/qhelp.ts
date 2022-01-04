@@ -1,7 +1,7 @@
-import { sendHelpMessage } from "../Common";
-import { Command } from "../Interfaces";
+import { sendHelpMessage } from "../common";
+import { Command } from "../interfaces";
 
-export const command: Command = {
+export const qhelp: Command = {
     name: 'quotehelp',
     aliases: ['qhelp'],
     run: async (client, message, messageContent) => {

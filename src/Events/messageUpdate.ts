@@ -1,9 +1,8 @@
 import { Message } from "discord.js";
-import { isQuote } from "../Common";
-import { Event } from "../Interfaces";
-import { States } from "../Interfaces/logs";
+import { isQuote } from "../common";
+import { Event, States } from "../interfaces";
 
-export const event: Event = {
+export const messageUpdate: Event = {
     name: 'messageUpdate',
     run: async (client, _oldMessage: Message, newMessage: Message) => {
         const oldMessage = _oldMessage.partial ? await _oldMessage.fetch() : _oldMessage;

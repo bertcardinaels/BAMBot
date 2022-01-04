@@ -1,8 +1,7 @@
-import { finishedReinitialization, startedReinitialization } from "../Common";
-import { States } from "../Interfaces/logs";
-import { SlashCommand } from "../Interfaces/SlashCommand";
+import { finishedReinitialization, startedReinitialization } from "../common";
+import { SlashCommand, States } from "../interfaces";
 
-export const slashCommand: SlashCommand = {
+export const reinitialize: SlashCommand = {
     name: 'reinitialize',
     type: 'CHAT_INPUT',
     description: 'Reinitializes the quotes for the server',

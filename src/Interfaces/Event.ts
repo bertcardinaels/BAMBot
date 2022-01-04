@@ -1,5 +1,5 @@
 import { ClientEvents } from "discord.js";
-import Client from "../Client/client";
+import Client from "../client/client";
 
 interface Run {
     (client: Client, ...args: any[]): any

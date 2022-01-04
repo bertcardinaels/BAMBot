@@ -1,5 +1,5 @@
 import { ChatInputApplicationCommandData, CommandInteraction, PermissionString } from "discord.js";
-import Client from "../Client/client";
+import Client from "../client/client";
 
 interface Run {
     (client: Client, interaction: CommandInteraction): any;

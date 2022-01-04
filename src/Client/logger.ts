@@ -1,6 +1,6 @@
 import { Collection, Guild, GuildChannel, Message, Role, User } from "discord.js";
-import { cleanQuote, Colors, rainbowify, ToFix } from "../Common";
-import { Scopes, States, Tasks } from "../Interfaces/logs";
+import { cleanQuote, Colors, rainbowify, ToFix } from "../common";
+import { Scopes, States, Tasks } from "../interfaces";
 
 export class LoggingService {
     quoteRequest(task: Tasks.QUOTE | Tasks.QUOTESTATS, author: User, guild: Guild, mentionedUsers: Collection<string, User>, mentionedRoles: Collection<string, Role>, textFilter: string[], includeImage?: boolean): void {

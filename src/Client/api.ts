@@ -1,5 +1,5 @@
 import got, { CancelableRequest, Response } from "got/dist/source";
-import { ToFix } from "../Common";
+import { ToFix } from "../common";
 
 export class ApiService {
     constructor(private apiLocation: string) { }

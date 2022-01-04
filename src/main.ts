@@ -1,8 +1,8 @@
 import { Intents } from "discord.js";
 import dotenv from "dotenv-flow";
-import { ApiService } from "./Client/api";
-import Client from "./Client/client";
-import { LoggingService } from "./Client/logger";
+import { ApiService } from "./client/api";
+import Client from "./client/client";
+import { LoggingService } from "./client/logger";
 dotenv.config();
 
 try {

@@ -1,8 +1,7 @@
 import { Message } from "discord.js";
-import { Event } from "../Interfaces";
-import { States } from "../Interfaces/logs";
+import { Event, States } from "../interfaces";
 
-export const event: Event = {
+export const messageDelete: Event = {
     name: 'messageDelete',
     run: async (client, message: Message) => {
         if (!message.inGuild() && message.channel.type !== 'GUILD_TEXT') return;

@@ -1,7 +1,7 @@
-import { getMessageFilters, getQuoteStats } from '../Common';
-import { Command } from '../Interfaces';
+import { getMessageFilters, getQuoteStats } from '../common';
+import { Command } from '../interfaces';
 
-export const command: Command = {
+export const quotestat: Command = {
     name: 'quotestats',
     aliases: ['qstat', 'qstats', 'quotestat'],
     run: async (client, message, messageContent) => {

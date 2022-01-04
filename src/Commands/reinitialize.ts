@@ -1,7 +1,7 @@
-import { finishedReinitialization, startedReinitialization } from "../Common";
-import { Command } from "../Interfaces";
+import { finishedReinitialization, startedReinitialization } from "../common";
+import { Command } from "../interfaces";
 
-export const command: Command = {
+export const reinitialize: Command = {
     name: 'reinitialize',
     aliases: ['reinit'],
     permissions: ['ADMINISTRATOR'],

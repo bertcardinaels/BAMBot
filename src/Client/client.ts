@@ -1,11 +1,10 @@
 import { Client, ClientOptions, Collection, Guild, GuildChannel, Message, TextChannel } from "discord.js";
-import { readdirSync } from "fs";
-import path from "path";
-import { insufficientPermissions, isQuote, isQuoteChannel } from "../Common";
-import { config } from "../Config/config";
-import { Command } from "../Interfaces";
-import { QuoteChannel } from "../Interfaces/QuoteChannel";
-import { SlashCommand } from "../Interfaces/SlashCommand";
+import { commands } from "../commands";
+import { insufficientPermissions, isQuote, isQuoteChannel } from "../common";
+import { config } from "../config/config";
+import { events } from "../events";
+import { Command, Event, QuoteChannel, SlashCommand } from "../interfaces";
+import { slashCommands } from "../slashCommands";
 import { ApiService } from "./api";
 import { LoggingService } from "./logger";
 
@@ -27,9 +26,7 @@ export class ExtendedClient extends Client {
 
     public async init() {
         // Commands
-        const commandPath = path.join(__dirname, "..", "Commands");
-        readdirSync(commandPath).forEach(async (file) => {
-            const { command } = await import(`${commandPath}/${file}`);
+        commands.forEach(command => {
             this.commands.set(command.name, command);
             command?.aliases?.length && command.aliases.forEach((alias: any) => {
                 this.aliases.set(alias, command);
@@ -37,19 +34,13 @@ export class ExtendedClient extends Client {
         });
 
         // Events
-        const eventPath = path.join(__dirname, "..", "Events");
-        readdirSync(eventPath).forEach(async (file) => {
-            const { event } = await import(`${eventPath}/${file}`);
+        events.forEach(event => {
             this.events.set(event.name, event);
             this.on(event.name, event.run.bind(null, this));
         });
 
         // Slash Commands
-        const slashCommandPath = path.join(__dirname, "..", "SlashCommands");
-        readdirSync(slashCommandPath).forEach(async (file) => {
-            const { slashCommand } = await import(`${slashCommandPath}/${file}`);
-            this.slashCommands.set(slashCommand.name, slashCommand);
-        });
+        slashCommands.forEach(slashcommand => this.slashCommands.set(slashcommand.name, slashcommand));
         this.initializeSlashCommands();
 
         await this.login(config.token);

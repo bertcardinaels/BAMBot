@@ -1,7 +1,7 @@
-import { getMessageFilters, getRandomQuote } from "../Common";
-import { Command } from "../Interfaces";
+import { getMessageFilters, getRandomQuote } from "../common";
+import { Command } from "../interfaces";
 
-export const command: Command = {
+export const quote: Command = {
     name: 'quote',
     aliases: ['q'],
     run: async (client, message, messageContent) => {

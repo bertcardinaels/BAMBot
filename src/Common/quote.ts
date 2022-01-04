@@ -1,8 +1,7 @@
 import { Collection, CommandInteraction, Guild, GuildChannel, Message, MessageOptions, MessagePayload, Role, User } from "discord.js";
 import { isRoleMention, isUserMention } from ".";
-import ExtendedClient from "../Client/client";
-import { FilterFlag } from "../Interfaces/FilterFlag";
-import { States, Tasks } from "../Interfaces/logs";
+import ExtendedClient from "../client/client";
+import { FilterFlag, States, Tasks } from "../interfaces";
 
 const quotePattern = /(".+"|'.+'|”.+”).*[~-]/;
 const strictSearchPattern = /"([^"]*)"|'([^']*)'|”([^”]*)”/g;

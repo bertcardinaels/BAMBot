@@ -1,7 +1,7 @@
-import { isQuoteChannel, parseMessageUrl, ToFix } from "../Common";
-import { SlashCommand } from "../Interfaces/SlashCommand";
+import { isQuoteChannel, parseMessageUrl, ToFix } from "../common";
+import { SlashCommand } from "../interfaces";
 
-export const slashCommand: SlashCommand = {
+export const fixquote: SlashCommand = {
     name: 'fixquote',
     type: 'CHAT_INPUT',
     description: 'Flags a message to be fixed by author',

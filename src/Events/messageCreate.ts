@@ -1,9 +1,9 @@
 import { Message } from "discord.js";
-import { insufficientPermissions } from "../Common";
-import { config } from "../Config/config";
-import { Event } from "../Interfaces";
+import { insufficientPermissions } from "../common";
+import { config } from "../config/config";
+import { Event } from "../interfaces";
 
-export const event: Event = {
+export const messageCreate: Event = {
     name: 'messageCreate',
     run: async (client, message: Message) => {
         if (message.author.bot || !message.guild || !message.content.startsWith(config.prefix)) return;

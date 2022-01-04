@@ -1,6 +1,6 @@
-import { Event } from "../Interfaces";
+import { Event } from "../interfaces";
 
-export const event: Event = {
+export const ready: Event = {
     name: 'ready',
     run: (client) => {
         client.logger.started();        

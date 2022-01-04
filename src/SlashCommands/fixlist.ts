@@ -1,8 +1,8 @@
 import { Message } from "discord.js";
-import { listMessage, mapNumberToEmoji, ToFix } from "../Common";
-import { SlashCommand } from "../Interfaces/SlashCommand";
+import { listMessage, mapNumberToEmoji, ToFix } from "../common";
+import { SlashCommand } from "../interfaces";
 
-export const slashCommand: SlashCommand = {
+export const fixlist: SlashCommand = {
     name: 'fixlist',
     type: 'CHAT_INPUT',
     description: 'Lists all quotes to be fixed by author',

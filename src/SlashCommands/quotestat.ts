@@ -1,7 +1,7 @@
-import { getInteractionFilters, getQuoteStats } from "../Common";
-import { SlashCommand } from "../Interfaces/SlashCommand";
+import { getInteractionFilters, getQuoteStats } from "../common";
+import { SlashCommand } from "../interfaces";
 
-export const slashCommand: SlashCommand = {
+export const quotestat: SlashCommand = {
     name: 'quotestat',
     type: 'CHAT_INPUT',
     description: 'Gets statistics on quotes',

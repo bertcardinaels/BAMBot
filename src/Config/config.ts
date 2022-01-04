@@ -1,4 +1,4 @@
-import { Config } from "../Interfaces";
+import { Config } from "../interfaces";
 import { token } from "./token";
 
 export const config: Config = {

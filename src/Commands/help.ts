@@ -1,7 +1,7 @@
-import { sendHelpMessage } from "../Common";
-import { Command } from "../Interfaces";
+import { sendHelpMessage } from "../common";
+import { Command } from "../interfaces";
 
-export const command: Command = {
+export const help: Command = {
     name: 'help',
     aliases: ['h'],
     run: async (client, message, messageContent) => {
