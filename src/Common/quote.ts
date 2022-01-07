@@ -3,8 +3,8 @@ import { isRoleMention, isUserMention } from ".";
 import ExtendedClient from "../client/client";
 import { FilterFlag, States, Tasks } from "../interfaces";
 
-const quotePattern = /(".+"|'.+'|”.+”).*[~-]/;
-const strictSearchPattern = /"([^"]*)"|'([^']*)'|”([^”]*)”/g;
+const quotePattern = /("|'|“|”).+("|'|“|”).*[~-].+/;
+const strictSearchPattern = /"([^"]*)"|'([^']*)'|”([^”]*)”|“([^”]*)”|“([^”]*)“/g;
 
 const notInitialized = (task: Tasks.QUOTE | Tasks.QUOTESTATS, client: ExtendedClient, author: User, guild: Guild) => {
     client.logger.quoteError(task, author, guild, 'NOT YET INITIALIZED');
